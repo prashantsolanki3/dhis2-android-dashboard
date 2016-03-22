@@ -1,7 +1,9 @@
 package org.hisp.dhis.android.dashboard.ui.fragments.interpretation;
 
+import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.Toolbar;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
@@ -19,7 +21,6 @@ import org.hisp.dhis.android.dashboard.ui.fragments.BaseFragment;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
-import fr.castorflex.android.smoothprogressbar.SmoothProgressBar;
 
 /**
  * Created by arazabishov on 7/24/15.
@@ -31,8 +32,9 @@ public class InterpretationEmptyFragment extends BaseFragment implements View.On
     @Bind(R.id.toolbar)
     Toolbar mToolbar;
 
-    @Bind(R.id.progress_bar)
-    SmoothProgressBar mProgressBar;
+
+    @Bind(R.id.swipe_refresh)
+    SwipeRefreshLayout mSwipeRefreshLayout;
 
     @Nullable
     @Override
@@ -57,6 +59,14 @@ public class InterpretationEmptyFragment extends BaseFragment implements View.On
                 return onMenuItemClicked(item);
             }
         });
+        if(Build.VERSION.SDK_INT>=23)
+            mSwipeRefreshLayout.setColorSchemeColors(getResources().getColor(R.color.navy_blue,getContext().getTheme()),
+                    getResources().getColor(R.color.orange, getContext().getTheme()),
+                    getResources().getColor(R.color.grey,getContext().getTheme()));
+        else
+            mSwipeRefreshLayout.setColorSchemeColors(getResources().getColor(R.color.navy_blue),
+                    getResources().getColor(R.color.orange),
+                    getResources().getColor(R.color.grey));
 
         if (isDhisServiceBound() &&
                 !getDhisService().isJobRunning(DhisService.SYNC_INTERPRETATIONS) &&
@@ -68,9 +78,9 @@ public class InterpretationEmptyFragment extends BaseFragment implements View.On
                 getDhisService().isJobRunning(DhisService.SYNC_INTERPRETATIONS);
         if ((savedInstanceState != null &&
                 savedInstanceState.getBoolean(IS_LOADING)) || isLoading) {
-            mProgressBar.setVisibility(View.VISIBLE);
+            doSwipeRefresh(true);
         } else {
-            mProgressBar.setVisibility(View.INVISIBLE);
+            doSwipeRefresh(false);
         }
     }
 
@@ -81,8 +91,7 @@ public class InterpretationEmptyFragment extends BaseFragment implements View.On
 
     @Override
     public void onSaveInstanceState(Bundle outState) {
-        outState.putBoolean(IS_LOADING, mProgressBar
-                .getVisibility() == View.VISIBLE);
+        outState.putBoolean(IS_LOADING, mSwipeRefreshLayout.isRefreshing());
         super.onSaveInstanceState(outState);
     }
 
@@ -99,7 +108,7 @@ public class InterpretationEmptyFragment extends BaseFragment implements View.On
     private void syncInterpretations() {
         if (isDhisServiceBound()) {
             getDhisService().syncInterpretations();
-            mProgressBar.setVisibility(View.VISIBLE);
+            doSwipeRefresh(true);
         }
     }
 
@@ -107,7 +116,17 @@ public class InterpretationEmptyFragment extends BaseFragment implements View.On
     @SuppressWarnings("unused")
     public void onResponseReceived(NetworkJob.NetworkJobResult<?> result) {
         if (result.getResourceType() == ResourceType.INTERPRETATIONS) {
-            mProgressBar.setVisibility(View.INVISIBLE);
+            doSwipeRefresh(false);
         }
+    }
+
+    private void doSwipeRefresh(final boolean enable){
+        //Workaround for showing swipe refresh layout initially.
+        mSwipeRefreshLayout.post(new Runnable() {
+            @Override
+            public void run() {
+                mSwipeRefreshLayout.setRefreshing(enable);
+            }
+        });
     }
 }

@@ -28,10 +28,12 @@ package org.hisp.dhis.android.dashboard.ui.fragments.interpretation;
 
 import android.content.Context;
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.LoaderManager.LoaderCallbacks;
 import android.support.v4.content.Loader;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -75,7 +77,6 @@ import java.util.List;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
-import fr.castorflex.android.smoothprogressbar.SmoothProgressBar;
 
 /**
  * @author Araz Abishov <araz.abishov.gsoc@gmail.com>.
@@ -86,8 +87,8 @@ public final class InterpretationFragment extends BaseFragment
     private static final int LOADER_ID = 23452435;
     private static final String IS_LOADING = "state:isLoading";
 
-    @Bind(R.id.progress_bar)
-    SmoothProgressBar mProgressBar;
+    @Bind(R.id.swipe_refresh)
+    SwipeRefreshLayout mSwipeRefreshLayout;
 
     @Bind(R.id.recycler_view)
     RecyclerView mRecyclerView;
@@ -147,14 +148,21 @@ public final class InterpretationFragment extends BaseFragment
                 !SessionManager.getInstance().isResourceTypeSynced(ResourceType.INTERPRETATIONS)) {
             syncInterpretations();
         }
-
+        if(Build.VERSION.SDK_INT>=23)
+            mSwipeRefreshLayout.setColorSchemeColors(getResources().getColor(R.color.navy_blue,getContext().getTheme()),
+                    getResources().getColor(R.color.orange, getContext().getTheme()),
+                    getResources().getColor(R.color.grey,getContext().getTheme()));
+        else
+            mSwipeRefreshLayout.setColorSchemeColors(getResources().getColor(R.color.navy_blue),
+                    getResources().getColor(R.color.orange),
+                    getResources().getColor(R.color.grey));
         boolean isLoading = isDhisServiceBound() &&
                 getDhisService().isJobRunning(DhisService.SYNC_INTERPRETATIONS);
         if ((savedInstanceState != null &&
                 savedInstanceState.getBoolean(IS_LOADING)) || isLoading) {
-            mProgressBar.setVisibility(View.VISIBLE);
+            doSwipeRefresh(true);
         } else {
-            mProgressBar.setVisibility(View.INVISIBLE);
+            doSwipeRefresh(false);
         }
     }
 
@@ -166,8 +174,7 @@ public final class InterpretationFragment extends BaseFragment
 
     @Override
     public void onSaveInstanceState(Bundle outState) {
-        outState.putBoolean(IS_LOADING, mProgressBar
-                .getVisibility() == View.VISIBLE);
+        outState.putBoolean(IS_LOADING, mSwipeRefreshLayout.isRefreshing());
         super.onSaveInstanceState(outState);
     }
 
@@ -246,9 +253,9 @@ public final class InterpretationFragment extends BaseFragment
                 boolean isLoading = isDhisServiceBound() &&
                         getDhisService().isJobRunning(DhisService.SYNC_INTERPRETATIONS);
                 if (isLoading) {
-                    mProgressBar.setVisibility(View.VISIBLE);
+                    doSwipeRefresh(true);
                 } else {
-                    mProgressBar.setVisibility(View.INVISIBLE);
+                    doSwipeRefresh(false);
                 }
             }
         }
@@ -272,7 +279,7 @@ public final class InterpretationFragment extends BaseFragment
     @SuppressWarnings("unused")
     public void onResponseReceived(NetworkJob.NetworkJobResult<?> result) {
         if (result.getResourceType() == ResourceType.INTERPRETATIONS) {
-            mProgressBar.setVisibility(View.INVISIBLE);
+            doSwipeRefresh(false);
         }
     }
 
@@ -283,9 +290,9 @@ public final class InterpretationFragment extends BaseFragment
             boolean isLoading = isDhisServiceBound() &&
                     getDhisService().isJobRunning(DhisService.SYNC_INTERPRETATIONS);
             if (isLoading) {
-                mProgressBar.setVisibility(View.VISIBLE);
+                doSwipeRefresh(true);
             } else {
-                mProgressBar.setVisibility(View.INVISIBLE);
+                doSwipeRefresh(false);
             }
         }
     }
@@ -293,8 +300,18 @@ public final class InterpretationFragment extends BaseFragment
     private void syncInterpretations() {
         if (isDhisServiceBound()) {
             getDhisService().syncInterpretations();
-            mProgressBar.setVisibility(View.VISIBLE);
+            doSwipeRefresh(true);
         }
+    }
+
+    private void doSwipeRefresh(final boolean enable){
+        //Workaround for showing swipe refresh layout initially.
+        mSwipeRefreshLayout.post(new Runnable() {
+            @Override
+            public void run() {
+                mSwipeRefreshLayout.setRefreshing(enable);
+            }
+        });
     }
 
     private static class InterpretationsQuery implements Query<List<Interpretation>> {

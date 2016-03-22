@@ -32,7 +32,11 @@
 
     <include layout="@layout/toolbar" />
 
-    <include layout="@layout/progress_bar_horizontal" />
+    <android.support.v4.widget.SwipeRefreshLayout
+        android:layout_height="match_parent"
+        android:id="@+id/swipe_refresh"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior"
+        android:layout_width="match_parent">
 
     <org.hisp.dhis.android.dashboard.ui.views.FontTextView
         android:layout_width="match_parent"
@@ -42,5 +46,5 @@
         android:textColor="@color/navy_blue"
         android:textSize="20sp"
         app:font="@string/light_font_name" />
-
+</android.support.v4.widget.SwipeRefreshLayout>
 </LinearLayout>

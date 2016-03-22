@@ -29,11 +29,13 @@
 package org.hisp.dhis.android.dashboard.ui.fragments.dashboard;
 
 import android.content.Context;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.LoaderManager.LoaderCallbacks;
 import android.support.v4.content.Loader;
 import android.support.v4.view.ViewPager;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.Toolbar;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -66,7 +68,6 @@ import java.util.List;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
-import fr.castorflex.android.smoothprogressbar.SmoothProgressBar;
 
 public class DashboardViewPagerFragment extends BaseFragment
         implements LoaderCallbacks<List<Dashboard>>, View.OnClickListener,
@@ -85,8 +86,8 @@ public class DashboardViewPagerFragment extends BaseFragment
     @Bind(R.id.toolbar)
     Toolbar mToolbar;
 
-    @Bind(R.id.progress_bar)
-    SmoothProgressBar mProgressBar;
+    @Bind(R.id.swipe_refresh)
+    SwipeRefreshLayout mSwipeRefreshLayout;
 
     DashboardAdapter mDashboardAdapter;
 
@@ -102,7 +103,14 @@ public class DashboardViewPagerFragment extends BaseFragment
         mDashboardAdapter = new DashboardAdapter(getChildFragmentManager());
         mViewPager.setAdapter(mDashboardAdapter);
         mViewPager.addOnPageChangeListener(this);
-
+        if(Build.VERSION.SDK_INT>=23)
+            mSwipeRefreshLayout.setColorSchemeColors(getResources().getColor(R.color.navy_blue,getContext().getTheme()),
+                    getResources().getColor(R.color.orange, getContext().getTheme()),
+                    getResources().getColor(R.color.grey,getContext().getTheme()));
+        else
+            mSwipeRefreshLayout.setColorSchemeColors(getResources().getColor(R.color.navy_blue),
+                    getResources().getColor(R.color.orange),
+                    getResources().getColor(R.color.grey));
         mToolbar.setNavigationIcon(R.mipmap.ic_menu);
         mToolbar.setNavigationOnClickListener(this);
         mToolbar.setTitle(R.string.dashboard);
@@ -124,10 +132,17 @@ public class DashboardViewPagerFragment extends BaseFragment
                 getDhisService().isJobRunning(DhisService.SYNC_DASHBOARDS);
         if ((savedInstanceState != null &&
                 savedInstanceState.getBoolean(IS_LOADING)) || isLoading) {
-            mProgressBar.setVisibility(View.VISIBLE);
+                doSwipeRefresh(true);
         } else {
-            mProgressBar.setVisibility(View.INVISIBLE);
+            doSwipeRefresh(false);
         }
+
+        mSwipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                syncDashboards();
+            }
+        });
     }
 
     @Override
@@ -138,8 +153,7 @@ public class DashboardViewPagerFragment extends BaseFragment
 
     @Override
     public void onSaveInstanceState(Bundle outState) {
-        outState.putBoolean(IS_LOADING, mProgressBar
-                .getVisibility() == View.VISIBLE);
+        outState.putBoolean(IS_LOADING, mSwipeRefreshLayout.isRefreshing());
         super.onSaveInstanceState(outState);
     }
 
@@ -194,6 +208,7 @@ public class DashboardViewPagerFragment extends BaseFragment
     @Override
     public void onPageScrollStateChanged(int state) {
         // stub implementation
+        mSwipeRefreshLayout.setEnabled(state == ViewPager.SCROLL_STATE_IDLE);
     }
 
     @Subscribe
@@ -203,9 +218,9 @@ public class DashboardViewPagerFragment extends BaseFragment
             boolean isLoading = isDhisServiceBound() &&
                     getDhisService().isJobRunning(DhisService.SYNC_DASHBOARDS);
             if (isLoading) {
-                mProgressBar.setVisibility(View.VISIBLE);
+                doSwipeRefresh(true);
             } else {
-                mProgressBar.setVisibility(View.INVISIBLE);
+                doSwipeRefresh(false);
             }
         }
     }
@@ -253,15 +268,25 @@ public class DashboardViewPagerFragment extends BaseFragment
     private void syncDashboards() {
         if (isDhisServiceBound()) {
             getDhisService().syncDashboardsAndContent();
-            mProgressBar.setVisibility(View.VISIBLE);
+            doSwipeRefresh(true);
         }
+    }
+
+    private void doSwipeRefresh(final boolean enable){
+        //Workaround for showing swipe refresh layout initially.
+        mSwipeRefreshLayout.post(new Runnable() {
+            @Override
+            public void run() {
+                mSwipeRefreshLayout.setRefreshing(enable);
+            }
+        });
     }
 
     @Subscribe
     @SuppressWarnings("unused")
     public void onResponseReceived(NetworkJob.NetworkJobResult<?> result) {
         if (result.getResourceType() == ResourceType.DASHBOARDS) {
-            mProgressBar.setVisibility(View.INVISIBLE);
+            doSwipeRefresh(false);
         }
     }
 
