@@ -122,7 +122,7 @@ public final class InterpretationFragment extends BaseFragment
         mRecyclerView.addItemDecoration(new GridDividerDecoration(getActivity()
                 .getApplicationContext()));
         mRecyclerView.setAdapter(mAdapter);
-
+        mRecyclerView.setHasFixedSize(true);
         mToolbar.setNavigationIcon(R.mipmap.ic_menu);
         mToolbar.setTitle(R.string.interpretations);
         mToolbar.inflateMenu(R.menu.menu_interpretations_fragment);

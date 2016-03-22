@@ -47,6 +47,7 @@ public class AccountFieldAdapter extends AbsAdapter<Field, AccountFieldAdapter.F
             super(itemView);
             ButterKnife.bind(this, itemView);
             inputLayout.setEnabled(false);
+            inputLayout.setHintTextAppearance(R.style.UserProfileLabelHintStyle);
         }
     }
 }

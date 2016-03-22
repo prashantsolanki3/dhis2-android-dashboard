@@ -113,4 +113,10 @@
     <string name="phone_number">Phone number</string>
 
     <!-- END Account -->
+
+
+    <!--SETTINGS FRAGMENT TEMPORARY STRINGS-->
+    <string name="thank_you_for_using_dhis2">Thank you for using DHIS2 Dashboard!</string>
+    <string name="different_user_sign_in">You may log out and sign in as a different user!</string>
+
 </resources>
