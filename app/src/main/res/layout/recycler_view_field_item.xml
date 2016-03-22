@@ -7,14 +7,6 @@
     android:orientation="vertical"
     android:padding="16dp">
 
-    <!--<org.hisp.dhis.android.dashboard.ui.views.FontTextView
-        android:id="@+id/field_label_text_view"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="4dp"
-        android:textSize="16sp"
-        app:font="@string/light_font_name"/>-->
-
     <android.support.design.widget.TextInputLayout
         android:id="@+id/field_value_text_input_layout"
         android:layout_height="wrap_content"
