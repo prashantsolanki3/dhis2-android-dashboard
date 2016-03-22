@@ -32,6 +32,7 @@ import android.content.Context;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static org.hisp.dhis.android.dashboard.api.utils.Preconditions.isNull;
@@ -44,6 +45,7 @@ public abstract class AbsAdapter<T, VH extends RecyclerView.ViewHolder> extends 
     public AbsAdapter(Context context, LayoutInflater inflater) {
         mContext = isNull(context, "Context object must not be null");
         mInflater = isNull(inflater, "LayoutInflater object must not be null");
+        mData = new ArrayList<>();
     }
 
     @Override
@@ -64,9 +66,17 @@ public abstract class AbsAdapter<T, VH extends RecyclerView.ViewHolder> extends 
     }
 
     public void swapData(List<T> data) {
+        int size = mData.size();
+        if(data==null){
+            mData.clear();
+            notifyItemRangeRemoved(0,size==0?size:size-1);
+            return;
+        }
+
         if (mData != data) {
             mData = data;
-            notifyDataSetChanged();
+            size = mData.size();
+            notifyItemRangeInserted(0, size - 1);
         }
     }
 

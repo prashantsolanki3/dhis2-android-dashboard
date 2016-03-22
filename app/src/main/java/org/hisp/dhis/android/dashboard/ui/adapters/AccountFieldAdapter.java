@@ -1,11 +1,11 @@
 package org.hisp.dhis.android.dashboard.ui.adapters;
 
 import android.content.Context;
+import android.support.design.widget.TextInputLayout;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.TextView;
 
 import org.hisp.dhis.android.dashboard.R;
 import org.hisp.dhis.android.dashboard.ui.models.Field;
@@ -31,20 +31,22 @@ public class AccountFieldAdapter extends AbsAdapter<Field, AccountFieldAdapter.F
     @Override
     public void onBindViewHolder(FieldViewHolder holder, int position) {
         Field field = getData().get(position);
-        holder.labelTextView.setText(field.getLabel());
-        holder.valueTextView.setText(field.getValue());
+        //holder.labelTextView.setText(field.getLabel());
+        if(holder.inputLayout.getEditText()!=null)
+        holder.inputLayout.getEditText().setText(field.getValue());
+
+        holder.inputLayout.setHint(field.getLabel());
     }
 
     public static class FieldViewHolder extends RecyclerView.ViewHolder {
-        @Bind(R.id.field_label_text_view)
-        public TextView labelTextView;
 
-        @Bind(R.id.field_value_text_view)
-        public TextView valueTextView;
+        @Bind(R.id.field_value_text_input_layout)
+        public TextInputLayout inputLayout;
 
         public FieldViewHolder(View itemView) {
             super(itemView);
             ButterKnife.bind(this, itemView);
+            inputLayout.setEnabled(false);
         }
     }
 }

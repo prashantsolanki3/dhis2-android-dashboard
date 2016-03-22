@@ -33,12 +33,12 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.Loader;
-import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.OvershootInterpolator;
 import android.widget.Toast;
 import android.widget.ViewSwitcher;
 
@@ -65,6 +65,8 @@ import org.hisp.dhis.android.dashboard.ui.views.GridDividerDecoration;
 
 import java.util.Arrays;
 import java.util.List;
+
+import jp.wasabeef.recyclerview.animators.SlideInUpAnimator;
 
 public class DashboardFragment extends BaseFragment
         implements LoaderManager.LoaderCallbacks<List<DashboardItem>>, DashboardItemAdapter.OnItemClickListener {
@@ -139,7 +141,7 @@ public class DashboardFragment extends BaseFragment
         });
 
         mRecyclerView.setLayoutManager(gridLayoutManager);
-        mRecyclerView.setItemAnimator(new DefaultItemAnimator());
+        mRecyclerView.setItemAnimator(new SlideInUpAnimator(new OvershootInterpolator(1f)));
         mRecyclerView.addItemDecoration(new GridDividerDecoration(getActivity()
                 .getApplicationContext()));
         mRecyclerView.setAdapter(mAdapter);

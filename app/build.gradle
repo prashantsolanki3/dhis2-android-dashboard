@@ -42,4 +42,5 @@ dependencies {
     // Other
     compile 'com.jakewharton:butterknife:7.0.1'
     compile 'com.github.chrisbanes.photoview:library:1.2.4'
+    compile 'jp.wasabeef:recyclerview-animators:2.2.1'
 }
